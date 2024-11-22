@@ -286,6 +286,11 @@
             document.getElementById("potTotal").innerText = "Pot Total: " + potTotal;
         }
 
+        // Atualizar as estatísticas logo após o carregamento da página
+document.addEventListener('DOMContentLoaded', function() {
+    updateStats();
+    });
+
         function saveProgress() {
             localStorage.setItem('budPoints', budPoints);
             localStorage.setItem('water', water);
