@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudCoin Miner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+    <style>
+        /* Estilo Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(to bottom, #1e1e1e, #5b5b5b);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            height: 95vh;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            text-align: center;
+            padding: 10px;
+            background: #4caf50;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+
+        .app-header h1 {
+            font-size: 1.5rem;
+            color: #ffeb3b;
+            text-shadow: 2px 2px 5px black;
+        }
+
+        .section {
+            display: none;
+            flex-grow: 1;
+            padding: 20px;
+            text-align: center;
+            overflow-y: auto;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .stats {
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+
+        .stats p {
+            margin: 5px 0;
+        }
+
+        .plant {
+            width: 250px;
+            height: 250px;
+            margin-top: 30px;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 6px solid green;
+        }
+
+        .pot-display {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            color: #f39c12;
+        }
+
+        .fortune-wheel-container {
+            margin-top: 20px;
+        }
+
+        .wheel {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: conic-gradient(
+                #f39c12 0deg 45deg,
+                #e74c3c 45deg 90deg,
+                #2ecc71 90deg 135deg,
+                #3498db 135deg 180deg,
+                #9b59b6 180deg 225deg,
+                #34495e 225deg 270deg,
+                #1abc9c 270deg 315deg,
+                #e67e22 315deg 360deg
+            );
+            transition: transform 3s ease-out; /* Animação suave de rotação */
+        }
+
+        .wallet-button {
+            margin-top: 30px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px;
+            background: #4caf50;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .nav-btn img {
+            width: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>BUDCOIN Miner</h1>
+        </header>
+
+        <main>
+            <!-- Tela principal -->
+            <div id="main" class="section active">
+                <div class="stats">
+                    <p>💧 Water: <span id="water">100</span></p>
+                    <p>🌟 Bud Points: <span id="bud-points">0</span></p>
+                    <p>💰 Coins: <span id="coinCount">0</span></p>
+                </div>
+                <div class="pot-display" id="potTotal">Pot Total: 0</div>
+                <button id="claimPotBtn" onclick="claimPot()">Claim Pot</button>
+                <img src="https://i.imgur.com/oL3jRjB.jpeg" alt="Plant" class="plant" onclick="addCoin(event)">
+            </div>
+
+            <!-- Roleta -->
+            <div id="roleta" class="section">
+                <h3>Roleta da Sorte</h3>
+                <div class="fortune-wheel-container">
+                    <div class="wheel" id="wheel"></div>
+                    <button class="spin-button" onclick="spinWheel()">Girando</button>
+                    <p id="spin-result"></p>
+                </div>
+            </div>
+
+            <!-- Wallet -->
+            <div id="wallet" class="section">
+                <h3>Wallet</h3>
+                <p>Bud Points: <span id="wallet-bud-points">0</span></p>
+                <p>Coins: <span id="wallet-coins">0</span></p>
+                <button class="wallet-button" onclick="addWallet()">Adicionar Wallet</button>
+                <p>Em breve</p>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn" onclick="switchTab('main')">
+                <img src="https://cdn-icons-png.flaticon.com/512/1946/1946433.png" alt="Main">
+                <span>Main</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('roleta')">
+                <img src="https://cdn-icons-png.flaticon.com/512/3176/3176364.png" alt="Roleta">
+                <span>Roleta</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('wallet')">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Wallet">
+                <span>Wallet</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        let water = 100, budPoints = 0, coins = 0, potTotal = 0;
+
+        // Função para alternar entre as abas
+        function switchTab(tab) {
+            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+        }
+
+        // Função para adicionar moedas ao clicar na planta
+        function addCoin() {
+            if (water > 0) {
+                budPoints++;
+                coins++;
+                water -= 5;
+                potTotal += 1;
+                updateStats();
+            } else {
+                alert("Água insuficiente!");
+            }
+        }
+
+        // Função para reivindicar o "pot"
+        function claimPot() {
+            if (potTotal > 0) {
+                coins += potTotal;
+                potTotal = 0;
+                updateStats();
+                alert("Pot coletado!");
+            }
+        }
+
+        // Função para girar a roleta
+        function spinWheel() {
+            const prizes = [5, 10, 15, 20, 50];
+            const prize = prizes[Math.floor(Math.random() * prizes.length)];
+            coins += prize;
+            document.getElementById('spin-result').innerText = `Você ganhou ${prize} moedas!`;
+            updateStats();
+
+            // Animação de rotação
+            document.getElementById('wheel').style.transform = `rotate(${Math.random() * 360 + 3600}deg)`;
+        }
+
+        // Função para adicionar à carteira
+        function addWallet() {
+            alert("Wallet adicionada!");
+        }
+
+        // Função para atualizar as estatísticas
+        function updateStats() {
+            document.getElementById("water").innerText = water;
+            document.getElementById("bud-points").innerText = budPoints;
+            document.getElementById("coinCount").innerText = coins;
+            document.getElementById("potTotal").innerText = `Pot Total: ${potTotal}`;
+        }
+
+        // Recarregar água a cada 2 segundos
+        setInterval(() => {
+            if (water < 100) {
+                water += 3; // Aumenta a água aos poucos
+                updateStats();
+            }
+        }, 2000); // Recarrega a água a cada 2 segundos
+    </script>
+</body>
+</html>
