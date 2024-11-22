@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudCoin Miner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+    <style>
+        /* Reset básico */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(to bottom, #1e1e1e, #5b5b5b);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            height: 95vh;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .app-header {
+            text-align: center;
+            padding: 10px;
+            background: #4caf50;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+
+        .app-header h1 {
+            font-size: 1.5rem;
+            color: #ffeb3b;
+            text-shadow: 2px 2px 5px black;
+        }
+
+        .section {
+            display: none;
+            flex-grow: 1;
+            padding: 20px;
+            text-align: center;
+            overflow-y: auto;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .stats {
+            margin-top: 20px;
+            font-size: 1rem;
+        }
+
+        .stats p {
+            margin: 5px 0;
+        }
+
+        .pot-display {
+            font-size: 1.5rem;
+            margin-top: 10px;
+            color: #f39c12;
+        }
+
+        /* Alterado para aumentar o tamanho da imagem */
+        .plant {
+            width: 250px; /* Aumentando a largura */
+            height: 250px; /* Aumentando a altura */
+            margin-top: 30px;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 6px solid green; /* Borda verde mais espessa */
+            transition: transform 0.2s ease-in-out;
+            transform-style: preserve-3d;
+            animation: rotate3d 4s infinite linear; /* Animação 3D de rotação */
+        }
+
+        .plant:active {
+            transform: none; /* Remove o efeito de zoom no clique */
+        }
+
+        /* Animação 3D de rotação */
+        @keyframes rotate3d {
+            0% {
+                transform: rotateY(0deg);
+            }
+            50% {
+                transform: rotateY(180deg);
+            }
+            100% {
+                transform: rotateY(360deg);
+            }
+        }
+
+        .coin-effect {
+            position: absolute;
+            font-size: 1.5rem;
+            color: #ffd700;
+            animation: floatUp 1s forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+        }
+        }
+
+        .fortune-wheel-container {
+            margin-top: 20px;
+        }
+
+        .wheel {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: conic-gradient(
+                #f39c12 0deg 45deg,
+                #e74c3c 45deg 90deg,
+                #2ecc71 90deg 135deg,
+                #3498db 135deg 180deg,
+                #9b59b6 180deg 225deg,
+                #34495e 225deg 270deg,
+                #1abc9c 270deg 315deg,
+                #e67e22 315deg 360deg
+            );
+            transition: transform 3s ease-out; /* Animação suave de rotação */
+        }
+
+        .wallet-button {
+            margin-top: 30px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 0;
+            background: #4caf50;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+            box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .nav-btn img {
+            width: 30px;
+            margin-bottom: 5px;
+        }
+
+        .nav-btn span {
+            font-size: 0.8rem;
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>BUDCOIN Miner</h1>
+        </header>
+
+        <main>
+            <!-- Tela principal -->
+            <div id="main" class="section active">
+                <div class="stats">
+                    <p>💧 Water: <span id="water">100</span></p>
+                    <p>🌟 Bud Points: <span id="bud-points">0</span></p>
+                    <p>💰 Coins: <span id="coinCount">0</span></p>
+                </div>
+
+            <!-- Pot Total -->
+            <div class="pot-display" id="potTotal">Pot Total: 0</div>
+            <button id="claimPotBtn" class="claim-button" onclick="claimPot()">Claim Pot</button>
+
+            <!-- Planta -->
+            <div class="game-area">
+                <img src="https://i.imgur.com/oL3jRjB.jpeg" alt="Cannabis Plant" class="plant" onclick="addCoin(event)">
+            </div>
+        </main>
+
+            <!-- Roleta -->
+            <div id="roleta" class="section">
+                <h3>Roleta da Sorte</h3>
+                <div class="fortune-wheel-container">
+                    <div class="wheel" id="wheel"></div>
+                    <button class="spin-button" onclick="spinWheel()">Girando</button>
+                    <p id="spin-result"></p>
+                </div>
+            </div>
+
+            <!-- Wallet -->
+            <div id="wallet" class="section">
+                <h3>Wallet</h3>
+                <p>Bud Points: <span id="wallet-bud-points">0</span></p>
+                <p>Coins: <span id="wallet-coins">0</span></p>
+                <button class="wallet-button" onclick="addWallet()">Adicionar Wallet</button>
+                <p>Em breve</p>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn" onclick="switchTab('main')">
+                <img src="https://cdn-icons-png.flaticon.com/512/1946/1946433.png" alt="Main">
+                <span>Main</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('roleta')">
+                <img src="https://cdn-icons-png.flaticon.com/512/3176/3176364.png" alt="Roleta">
+                <span>Roleta</span>
+            </button>
+            <button class="nav-btn" onclick="switchTab('wallet')">
+                <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Wallet">
+                <span>Wallet</span>
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        let budPoints = parseInt(localStorage.getItem('budPoints')) || 0;
+        let water = parseInt(localStorage.getItem('water')) || 100;
+        let coins = parseInt(localStorage.getItem('coins')) || 0;
+        let potTotal = parseInt(localStorage.getItem('potTotal')) || 0;
+
+        // Função para alternar entre as abas
+        function switchTab(tab) {
+            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+        }
+
+        function addCoin(event) {
+            if (water > 0) {
+                budPoints++;
+                coins++;
+                water -= 5;
+                potTotal += 1;
+                updateStats();
+                saveProgress();
+                showCoinEffect(event.clientX, event.clientY);
+            } else {
+                alert("Water is empty! Wait for refill.");
+            }
+        }
+
+        function updateStats() {
+            document.getElementById("bud-points").innerText = budPoints;
+            document.getElementById("water").innerText = water;
+            document.getElementById("coinCount").innerText = coins;
+            document.getElementById("potTotal").innerText = "Pot Total: " + potTotal;
+        }
+
+        function saveProgress() {
+            localStorage.setItem('budPoints', budPoints);
+            localStorage.setItem('water', water);
+            localStorage.setItem('coins', coins);
+            localStorage.setItem('potTotal', potTotal);
+        }
+
+        setInterval(() => {
+            if (water < 100) {
+                water += 3;
+                updateStats();
+                saveProgress();
+            }
+        }, 1667);
+
+        function claimPot() {
+            if (potTotal > 0) {
+                coins += potTotal;
+                potTotal = 0;
+                updateStats();
+                saveProgress();
+                alert("Pot claimed!");
+            } else {
+                alert("No pot to claim!");
+            }
+        }
+
+        function showCoinEffect(x, y) {
+            const effect = document.createElement("div");
+            effect.className = "coin-effect";
+            effect.style.left = `${x}px`;
+            effect.style.top = `${y}px`;
+            effect.style.position = "absolute";
+            effect.innerText = "+1 💰";
+            document.body.appendChild(effect);
+            setTimeout(() => effect.remove(), 1000);
+        }
+
+        // Função para girar a roleta
+        function spinWheel() {
+            const prizes = [5, 10, 15, 20, 50];
+            const prize = prizes[Math.floor(Math.random() * prizes.length)];
+            coins += prize;
+            document.getElementById('spin-result').innerText = `Você ganhou ${prize} moedas!`;
+            updateStats();
+
+            // Animação de rotação
+            document.getElementById('wheel').style.transform = `rotate(${Math.random() * 360 + 3600}deg)`;
+        }
+
+        // Função para adicionar à carteira
+        function addWallet() {
+            alert("Em Breve");
+        }
+
+        // Função para atualizar as estatísticas
+        function updateStats() {
+            document.getElementById("water").innerText = water;
+            document.getElementById("bud-points").innerText = budPoints;
+            document.getElementById("coinCount").innerText = coins;
+            document.getElementById("potTotal").innerText = `Pot Total: ${potTotal}`;
+        }
+
+        // Recarregar água a cada 2 segundos
+        setInterval(() => {
+            if (water < 100) {
+                water += 3; // Aumenta a água aos poucos
+                updateStats();
+            }
+        }, 2000); // Recarrega a água a cada 2 segundos
+    </script>
+</body>
+</html>
