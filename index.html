@@ -6,7 +6,7 @@
     <title>BudCoin Miner</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
     <style>
-        /* Estilo Reset */
+        /* Reset básico */
         * {
             margin: 0;
             padding: 0;
@@ -21,6 +21,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            overflow: hidden;
         }
 
         .app-container {
@@ -31,6 +32,7 @@
             border-radius: 15px;
             display: flex;
             flex-direction: column;
+            justify-content: space-between;
         }
 
         .app-header {
@@ -68,19 +70,59 @@
             margin: 5px 0;
         }
 
+        .pot-display {
+            font-size: 1.5rem;
+            margin-top: 10px;
+            color: #f39c12;
+        }
+
+        /* Alterado para aumentar o tamanho da imagem */
         .plant {
-            width: 250px;
-            height: 250px;
+            width: 250px; /* Aumentando a largura */
+            height: 250px; /* Aumentando a altura */
             margin-top: 30px;
             cursor: pointer;
             border-radius: 50%;
-            border: 6px solid green;
+            border: 6px solid green; /* Borda verde mais espessa */
+            transition: transform 0.2s ease-in-out;
+            transform-style: preserve-3d;
+            animation: rotate3d 4s infinite linear; /* Animação 3D de rotação */
         }
 
-        .pot-display {
+        .plant:active {
+            transform: none; /* Remove o efeito de zoom no clique */
+        }
+
+        /* Animação 3D de rotação */
+        @keyframes rotate3d {
+            0% {
+                transform: rotateY(0deg);
+            }
+            50% {
+                transform: rotateY(180deg);
+            }
+            100% {
+                transform: rotateY(360deg);
+            }
+        }
+
+        .coin-effect {
+            position: absolute;
             font-size: 1.5rem;
-            margin: 20px 0;
-            color: #f39c12;
+            color: #ffd700;
+            animation: floatUp 1s forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+        }
         }
 
         .fortune-wheel-container {
@@ -119,10 +161,12 @@
         .bottom-nav {
             display: flex;
             justify-content: space-around;
-            padding: 10px;
+            align-items: center;
+            padding: 10px 0;
             background: #4caf50;
             border-bottom-left-radius: 15px;
             border-bottom-right-radius: 15px;
+            box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.5);
         }
 
         .nav-btn {
@@ -131,10 +175,20 @@
             color: white;
             text-align: center;
             cursor: pointer;
+            transition: transform 0.2s;
         }
 
         .nav-btn img {
             width: 30px;
+            margin-bottom: 5px;
+        }
+
+        .nav-btn span {
+            font-size: 0.8rem;
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.1);
         }
     </style>
 </head>
@@ -152,10 +206,16 @@
                     <p>🌟 Bud Points: <span id="bud-points">0</span></p>
                     <p>💰 Coins: <span id="coinCount">0</span></p>
                 </div>
-                <div class="pot-display" id="potTotal">Pot Total: 0</div>
-                <button id="claimPotBtn" onclick="claimPot()">Claim Pot</button>
-                <img src="https://i.imgur.com/oL3jRjB.jpeg" alt="Plant" class="plant" onclick="addCoin()">
+
+            <!-- Pot Total -->
+            <div class="pot-display" id="potTotal">Pot Total: 0</div>
+            <button id="claimPotBtn" class="claim-button" onclick="claimPot()">Claim Pot</button>
+
+            <!-- Planta -->
+            <div class="game-area">
+                <img src="https://i.imgur.com/oL3jRjB.jpeg" alt="Cannabis Plant" class="plant" onclick="addCoin(event)">
             </div>
+        </main>
 
             <!-- Roleta -->
             <div id="roleta" class="section">
@@ -194,7 +254,10 @@
     </div>
 
     <script>
-        let water = 100, budPoints = 0, coins = 0, potTotal = 0;
+        let budPoints = parseInt(localStorage.getItem('budPoints')) || 0;
+        let water = parseInt(localStorage.getItem('water')) || 100;
+        let coins = parseInt(localStorage.getItem('coins')) || 0;
+        let potTotal = parseInt(localStorage.getItem('potTotal')) || 0;
 
         // Função para alternar entre as abas
         function switchTab(tab) {
@@ -202,27 +265,63 @@
             document.getElementById(tab).classList.add('active');
         }
 
-        // Função para adicionar moedas ao clicar na planta
-        function addCoin() {
+        function addCoin(event) {
             if (water > 0) {
                 budPoints++;
                 coins++;
                 water -= 5;
                 potTotal += 1;
                 updateStats();
+                saveProgress();
+                showCoinEffect(event.clientX, event.clientY);
             } else {
-                alert("Água insuficiente!");
+                alert("Water is empty! Wait for refill.");
             }
         }
 
-        // Função para reivindicar o "pot"
+        function updateStats() {
+            document.getElementById("bud-points").innerText = budPoints;
+            document.getElementById("water").innerText = water;
+            document.getElementById("coinCount").innerText = coins;
+            document.getElementById("potTotal").innerText = "Pot Total: " + potTotal;
+        }
+
+        function saveProgress() {
+            localStorage.setItem('budPoints', budPoints);
+            localStorage.setItem('water', water);
+            localStorage.setItem('coins', coins);
+            localStorage.setItem('potTotal', potTotal);
+        }
+
+        setInterval(() => {
+            if (water < 100) {
+                water += 3;
+                updateStats();
+                saveProgress();
+            }
+        }, 1667);
+
         function claimPot() {
             if (potTotal > 0) {
                 coins += potTotal;
                 potTotal = 0;
                 updateStats();
-                alert("Pot coletado!");
+                saveProgress();
+                alert("Pot claimed!");
+            } else {
+                alert("No pot to claim!");
             }
+        }
+
+        function showCoinEffect(x, y) {
+            const effect = document.createElement("div");
+            effect.className = "coin-effect";
+            effect.style.left = `${x}px`;
+            effect.style.top = `${y}px`;
+            effect.style.position = "absolute";
+            effect.innerText = "+1 💰";
+            document.body.appendChild(effect);
+            setTimeout(() => effect.remove(), 1000);
         }
 
         // Função para girar a roleta
@@ -239,7 +338,7 @@
 
         // Função para adicionar à carteira
         function addWallet() {
-            alert("Wallet adicionada!");
+            alert("Em Breve");
         }
 
         // Função para atualizar as estatísticas
